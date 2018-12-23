@@ -11,7 +11,7 @@ var cheerio = require("cheerio");
 // Require all models
 var db = require("./models");
 
-var PORT = 5000;
+var PORT = 3030;
 
 // Initialize Express
 var app = express();
@@ -27,7 +27,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // Connect to the Mongo DB
-mongoose.connect("mongodb://localhost/unit18Populater", { useNewUrlParser: true });
+mongoose.connect("mongodb://localhost/unit18Populater");
 console.log("Connected to the database")
 // Routes
 
@@ -35,13 +35,14 @@ console.log("Connected to the database")
 app.get("/scrape", function(req, res) {
   // First, we grab the body of the html with axios
   console.log("scraping started");
-  axios.get("http://www.cnn.com/").then(function(response) {
+  axios.get("https://news.ycombinator.com/").then(function(response) {
     // Then, we load that into cheerio and save it to $ for a shorthand selector
     console.log(response.data);
     var $ = cheerio.load(response.data);
+    
 
     // Now, we grab every h2 within an article tag, and do the following:
-    $("article h2").each(function(i, element) {
+    $(".title").each(function(i, element) {
       // Save an empty result object
       var result = {};
 
@@ -53,11 +54,12 @@ app.get("/scrape", function(req, res) {
         .children("a")
         .attr("href");
 
-      // Create a new Article using the `result` object built from scraping
-      db.Article.create(result)
+      // Create a new Article using the `result` object built from scraping 
+      console.log(result);
+       db.Article.create(result)
         .then(function(dbArticle) {
           // View the added result in the console
-          console.log(dbArticle);
+           console.log(dbArticle); 
         })
         .catch(function(err) {
           // If an error occurred, log it
@@ -73,7 +75,7 @@ app.get("/scrape", function(req, res) {
 // Route for getting all Articles from the db
 app.get("/articles", function(req, res) {
   // Grab every document in the Articles collection
-  db.Article.find({})
+  db.Article.find({}) 
     .then(function(dbArticle) {
       // If we were able to successfully find Articles, send them back to the client
       res.json(dbArticle);
